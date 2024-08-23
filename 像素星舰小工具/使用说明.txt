@@ -1,0 +1,8 @@
+更新最新数据，合成公式、船员数据
+
+
+training训练, 按属性顺序模拟训练   	在training.txt中设定
+
+crew船员随机合成 			在crew.txt设置
+
+crew船员目标合成, 支持多个		在crew.txt设置

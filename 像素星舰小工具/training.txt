@@ -1,0 +1,8 @@
+------------------目标：------------------ 支持中英文
+金刚
+------------------属性：-------------------只支持英文
+###  HP |Attack |Repair |Ability|Stamina|Pilot|Science|Engineer|Weapon
+###  血  |攻击   |修理    |能力    |耐力    |导航  |科学   |引擎     |武器
+HP=34
+Attack=48
+Stamina=20
