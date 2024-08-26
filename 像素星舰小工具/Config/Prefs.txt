@@ -1,2 +1,2 @@
 DesignVersion=1180
-Lan=en
+Lan=cn
