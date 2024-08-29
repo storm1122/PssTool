@@ -7,11 +7,19 @@ public partial class CrewTraining
     private static TrainingType _curTrain = TrainingType.None;
     private static ExpressionType _curExpression = ExpressionType.None;
 
-    public static void Test(string crewName, List<(AttrType,int)> list)
+    public static void Test(string crewName, List<(AttrType,int)> list, List<(AttrType,float)> equiptList)
     {
         var crew = Crews.Get(crewName);
         var attr = new TrainAttr();
+        
         attr[AttrType.Max] = (int)crew.GetAttr(AttrType.TrainingCapacity);
+        foreach (var ele in equiptList)
+        {
+            if (ele.Item1 == AttrType.TrainingCapacity)
+            {
+                attr[AttrType.Max] += (int)ele.Item2;
+            }
+        }
 
         for (int i = 0; i < list.Count; i++)
         {
@@ -25,18 +33,32 @@ public partial class CrewTraining
         string str = "";
         for (int i = 0; i <= (int)AttrType.Max; i++)
         {
-            if (attr[(AttrType)i] > 0)
+            var attrType = (AttrType)i;
+            var trainVal = attr[(AttrType)i];
+            float equipVal = 0f;
+            foreach (var ele in equiptList)
             {
-                var attrType = (AttrType)i;
-                var trainVal = attr[(AttrType)i];
-                var val = crew.GetAttr(attrType) + crew.GetAttr(attrType) * trainVal * 0.01f;
+                if (ele.Item1 == attrType)
+                {
+                    equipVal += ele.Item2;
+                }
+            }
+            var val = crew.GetAttr(attrType) + crew.GetAttr(attrType) * trainVal * 0.01f;
+            if (attrType == AttrType.Ability)
+            {
+                val = val * (1 + equipVal * 0.01f);
+            }
+            else
+            {
+                val = val + equipVal;
+            }
+
+            if (trainVal > 0 || Math.Abs(equipVal) > 0.0001f)
+            {
                 if (val > 0)
                 {
-                    str += $"{(AttrType)i}: {trainVal} => {val}\n";
-                }
-                else
-                {
-                    str += $"{(AttrType)i}:{trainVal}   ";
+              
+                    str += $"{(AttrType)i}训练:{trainVal} => 面板属性: {val}\n";
                 }
             }
         }
@@ -48,59 +70,9 @@ public partial class CrewTraining
     }
 
 
-    public static void Test0()
-    {
-        var crew = Crews.Get("金刚");
-        
-        var attr = new TrainAttr();
-        attr[AttrType.Max] = (int)crew.GetAttr(AttrType.TrainingCapacity);
-
-        _curTrain = TrainingType.绿训;
-        _curExpression = ExpressionType.微笑;
-        attr.Train(AttrType.HP, _curTrain, _curExpression, 34);
-        
-        _curTrain = TrainingType.绿训;
-        _curExpression = ExpressionType.微笑;
-        attr.Train(AttrType.Attack, _curTrain, _curExpression, 48);
-
-        
-        _curTrain = TrainingType.绿训;
-        _curExpression = ExpressionType.微笑;
-        attr.Train(AttrType.Stamina, _curTrain, _curExpression, 20);
-
-
-        string str = "";
-        for (int i = 0; i <= (int)AttrType.Max; i++)
-        {
-            if (attr[(AttrType)i] > 0)
-            {
-                var attrType = (AttrType)i;
-                var trainVal = attr[(AttrType)i];
-                var val = crew.GetAttr(attrType) + crew.GetAttr(attrType) * trainVal * 0.01f;
-                if (val > 0)
-                {
-                    str += $"{(AttrType)i}: {trainVal} => {val}\n";
-                }
-                else
-                {
-                    str += $"{(AttrType)i}:{trainVal}   ";
-                }
-            }
-        }
-        
-        
-        Console.WriteLine($"训练度  {attr.TrainedTotalAmount}/{attr.TotalTrainingAmount}");
-        
-        Console.WriteLine(str);
-    }
-
-
-
-    
     public class TrainAttr
     {
         private Dictionary<AttrType, int> Dic = new();
-        public Crew Crew;
     
         public int this[AttrType attrType]
         {

@@ -12,8 +12,11 @@ public partial class CrewTraining
         string filePath =  ConstValue.TxtPath + @"training.txt"; // 替换为你的文件路径
         string target = string.Empty;
         string attrtext = string.Empty;
+        string equiptAttrtext = string.Empty;
 
         bool isInTargetsSection = false;  
+        bool isInTrainAttrSection = false;  
+        bool isInEquiptAttrSection = false;  
 
         using (StreamReader reader = new StreamReader(filePath))
         {
@@ -21,14 +24,22 @@ public partial class CrewTraining
             string line;
             while ((line = reader.ReadLine()) != null)
             {
-                if (line.Trim().Contains("------------------目标：------------------"))  
+                if (line.Trim().Contains("------------------船员：------------------"))  
                 {  
                     isInTargetsSection = true;  
                     continue; // 跳过这一行，不加入任何数组  
                 } 
-                else if (line.Trim().Contains("------------------属性：-------------------"))  
+                else if (line.Trim().Contains("------------------训练：-------------------"))  
                 {  
-                    isInTargetsSection = false;  
+                    isInTrainAttrSection = true;
+                    isInTargetsSection = false;
+                    continue; // 跳过这一行，不加入任何数组  
+                }  
+                else if (line.Trim().Contains("------------------装备：-------------------"))  
+                {  
+                    isInEquiptAttrSection = true;  
+                    isInTrainAttrSection = false;
+                    isInTargetsSection = false;
                     continue; // 跳过这一行，不加入任何数组  
                 }  
                 else if (line.StartsWith("###"))
@@ -42,21 +53,29 @@ public partial class CrewTraining
                         target = line.Trim();
                     }
                 }  
-                else  
+                else if (isInTrainAttrSection)  
                 {
                     if (!string.IsNullOrEmpty(line.Trim()))
                     {
                         attrtext += line.Trim();
                     }
-                }  
+                } 
+                else if (isInEquiptAttrSection)  
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                    {
+                        equiptAttrtext += line.Trim();
+                    }
+                } 
             }
         }
         
   
         Console.WriteLine(target);
-        Console.WriteLine(attrtext);
+        Console.WriteLine("训练目标：" + attrtext);
+        Console.WriteLine("装备属性：" + equiptAttrtext);
         
-        string pattern = @"(HP|Attack|Repair|Ability|Stamina|Pilot|Science|Engineer|Weapon)\s*[=，：]+\s*(\d+)";  
+        string pattern = @"(HP|Attack|Repair|Ability|Stamina|Pilot|Science|Engineer|Weapon|TrainingCapacity)\s*[=，：]+\s*(\d+)";  
   
         MatchCollection matches = Regex.Matches(attrtext, pattern);  
   
@@ -75,8 +94,29 @@ public partial class CrewTraining
                 Console.WriteLine($"Unknown attribute: {key}");  
             }  
         }  
+        
+        
+        string pattern1 = @"(HP|Attack|Repair|Ability|Stamina|Pilot|Science|Engineer|Weapon|TrainingCapacity)\s*[=，：]+\s*(\d+(\.\d+)?)";
+
+        MatchCollection equiptMatches = Regex.Matches(equiptAttrtext, pattern1);  
   
-        CrewTraining.Test(target, attrinfos);  
+        var equiptAttrinfos = new List<(AttrType, float)>();  
+  
+        foreach (Match match in equiptMatches)  
+        {  
+            string key = match.Groups[1].Value;  
+            if (Enum.TryParse<AttrType>(key, out AttrType attrType))  
+            {  
+                float value = float.Parse(match.Groups[2].Value);  
+                equiptAttrinfos.Add((attrType, value)); // 直接添加到列表中，保持顺序  
+            }  
+            else  
+            {  
+                Console.WriteLine($"Unknown attribute: {key}");  
+            }  
+        }  
+  
+        CrewTraining.Test(target, attrinfos, equiptAttrinfos);  
     }
   
 }
